@@ -40,6 +40,14 @@ class InterfaceController: WKInterfaceController {
         super.awakeWithContext(context)
         
         // Configure interface objects here.
+        if let saveTime = NSUserDefaults.standardUserDefaults().objectForKey("remainingTime") {
+            remainingTime = saveTime.integerValue
+            hour = remainingTime / 3600
+            let minLeft : Int = remainingTime / 60
+            minute = minLeft % 60
+            seconds = remainingTime % 60
+        }
+        
         var hourItems: [WKPickerItem] = []
         for hr in 0...23 {
             let pickerItem = WKPickerItem()
@@ -48,6 +56,7 @@ class InterfaceController: WKInterfaceController {
             hourItems.append(pickerItem)
         }
         hourPicker.setItems(hourItems)
+        hourPicker.setSelectedItemIndex(hour)
         
         var minItems: [WKPickerItem] = []
         for min in 0...59 {
@@ -57,6 +66,7 @@ class InterfaceController: WKInterfaceController {
             minItems.append(pickerItem)
         }
         minPicker.setItems(minItems)
+        minPicker.setSelectedItemIndex(minute)
         
         var secItems: [WKPickerItem] = []
         for sec in 0...59 {
@@ -66,6 +76,7 @@ class InterfaceController: WKInterfaceController {
             secItems.append(pickerItem)
         }
         secondsPicker.setItems(secItems)
+        secondsPicker.setSelectedItemIndex(seconds)
     }
 
     override func willActivate() {
@@ -139,7 +150,7 @@ class InterfaceController: WKInterfaceController {
         let uMin : Int = minLeft % 60
         let uSec : Int = remainingTime % 60
         
-        var text = String(format: "%02d", uHour) + ":" + String(format: "%02d", uMin) + ":" + String(format: "%02d", uSec)
+        let text = String(format: "%02d", uHour) + ":" + String(format: "%02d", uMin) + ":" + String(format: "%02d", uSec)
         TimeData.sharedInstance.timeRemainingText = text
         itemLabel.setText(text)
         
@@ -201,7 +212,8 @@ class InterfaceController: WKInterfaceController {
             pauseResumeButton.setEnabled(true)
             
             if (status == .Started) {
-                
+                computeRemainingTime()
+                NSUserDefaults.standardUserDefaults().setInteger(remainingTime, forKey: "remainingTime")
                 timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: Selector("updateLabel"), userInfo: nil, repeats: true)
             }
             
