@@ -41,7 +41,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
         if complication.family == .ModularLarge {
             let template = CLKComplicationTemplateModularLargeStandardBody()
             template.headerTextProvider = CLKSimpleTextProvider(text: "My Timer")
-            template.body1TextProvider = CLKSimpleTextProvider(text: TimeData.sharedInstance.timeRemainingText)
+            template.body1TextProvider = CLKSimpleTextProvider(text: TimerManager.sharedInstance.currentTimer!.remainingTimeString())
             
             let entry = CLKComplicationTimelineEntry(date: NSDate(),
                 complicationTemplate: template)

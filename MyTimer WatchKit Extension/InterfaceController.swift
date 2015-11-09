@@ -21,33 +21,21 @@ class InterfaceController: WKInterfaceController {
     @IBOutlet var minPicker: WKInterfacePicker!
     @IBOutlet var secondsPicker: WKInterfacePicker!
     var timer : NSTimer?
-    var minute = 0
-    var seconds = 0
-    var hour = 0
-    var remainingTime = 0
     
     enum Status{
-        case Launch
         case Idle
         case Started
         case Pause
         
     }
     
-    var status = Status.Launch
+    var status = Status.Idle
 
     override func awakeWithContext(context: AnyObject?) {
         super.awakeWithContext(context)
         
         // Configure interface objects here.
-        if let saveTime = NSUserDefaults.standardUserDefaults().objectForKey("remainingTime") {
-            remainingTime = saveTime.integerValue
-            hour = remainingTime / 3600
-            let minLeft : Int = remainingTime / 60
-            minute = minLeft % 60
-            seconds = remainingTime % 60
-        }
-        
+        let currentTimer = TimerManager.sharedInstance.currentTimer
         var hourItems: [WKPickerItem] = []
         for hr in 0...23 {
             let pickerItem = WKPickerItem()
@@ -56,7 +44,7 @@ class InterfaceController: WKInterfaceController {
             hourItems.append(pickerItem)
         }
         hourPicker.setItems(hourItems)
-        hourPicker.setSelectedItemIndex(hour)
+        hourPicker.setSelectedItemIndex((currentTimer?.hour)!)
         
         var minItems: [WKPickerItem] = []
         for min in 0...59 {
@@ -66,7 +54,7 @@ class InterfaceController: WKInterfaceController {
             minItems.append(pickerItem)
         }
         minPicker.setItems(minItems)
-        minPicker.setSelectedItemIndex(minute)
+        minPicker.setSelectedItemIndex((currentTimer?.minute)!)
         
         var secItems: [WKPickerItem] = []
         for sec in 0...59 {
@@ -76,19 +64,23 @@ class InterfaceController: WKInterfaceController {
             secItems.append(pickerItem)
         }
         secondsPicker.setItems(secItems)
-        secondsPicker.setSelectedItemIndex(seconds)
+        secondsPicker.setSelectedItemIndex((currentTimer?.second)!)
+        updateLabel()
     }
 
     override func willActivate() {
         // This method is called when watch view controller is about to be visible to user
         super.willActivate()
-        if (status == .Launch) {
-            updateLabel()
-            secondsPicker.focus()
-            pauseResumeButton.setEnabled(false)
+        if (TimerManager.sharedInstance.currentTimer?.timeStarted != nil) {
+            if (status == .Idle) {
+                startStopAction()
+            }
+        } else {
             pauseResumeButton.setTitle("Pause")
-            startStopButton.setEnabled(true)
+            pauseResumeButton.setEnabled(false)
             startStopButton.setTitle("Start")
+            startStopButton.setEnabled(true)
+            secondsPicker.focus()
         }
     }
 
@@ -98,20 +90,17 @@ class InterfaceController: WKInterfaceController {
     }
     
     @IBAction func hourChanged(value: Int) {
-        hour = value
-        computeRemainingTime()
+        TimerManager.sharedInstance.currentTimer?.hour = value
         updateLabel()
     }
     
     @IBAction func minChanged(value: Int) {
-        minute = value
-        computeRemainingTime()
+        TimerManager.sharedInstance.currentTimer?.minute = value
         updateLabel()
     }
     
     @IBAction func secChanged(value: Int) {
-        seconds = value
-        computeRemainingTime()
+        TimerManager.sharedInstance.currentTimer?.second = value
         updateLabel()
     }
 
@@ -119,9 +108,11 @@ class InterfaceController: WKInterfaceController {
         if (status == .Started) {
             status = .Pause
             pauseResumeButton.setTitle("Resume")
+            TimerManager.sharedInstance.currentTimer?.pause()
         } else {
             status = .Started
             pauseResumeButton.setTitle("Pause")
+            TimerManager.sharedInstance.currentTimer?.resume()
         }
         updateLabel()
         updateTimer()
@@ -129,41 +120,30 @@ class InterfaceController: WKInterfaceController {
     
     @IBAction func startStopAction() {
         
-        if (status != .Idle && status != .Launch) {
+        if (status != .Idle) {
             status = .Idle
             startStopButton.setTitle("Start")
+            pauseResumeButton.setTitle("Pause")
+            TimerManager.sharedInstance.currentTimer?.stop()
         } else {
             status = .Started
+            TimerManager.sharedInstance.currentTimer?.start()
             startStopButton.setTitle("Stop")
+            pauseResumeButton.setTitle("Pause")
         }
         
-        computeRemainingTime()
         updateLabel()
         updateTimer()
-        
     }
     
     func updateLabel() {
         
-        let uHour : Int = remainingTime / 3600
-        let minLeft : Int = remainingTime / 60
-        let uMin : Int = minLeft % 60
-        let uSec : Int = remainingTime % 60
-        
-        let text = String(format: "%02d", uHour) + ":" + String(format: "%02d", uMin) + ":" + String(format: "%02d", uSec)
-        TimeData.sharedInstance.timeRemainingText = text
-        itemLabel.setText(text)
-        
+        itemLabel.setText(TimerManager.sharedInstance.currentTimer?.remainingTimeString())
         reloadComplications()
         if (status == .Started) {
-            if (remainingTime == 0) {
+            if (TimerManager.sharedInstance.currentTimer?.remainingTotalTime == 0) {
                 WKInterfaceDevice.currentDevice().playHaptic(.Stop)
                 
-            }
-            
-            remainingTime--
-            if (remainingTime < 0) {
-                computeRemainingTime()
             }
         }
     }
@@ -179,23 +159,6 @@ class InterfaceController: WKInterfaceController {
             }
         }
     }
-    
-    func computeRemainingTime () {
-        remainingTime = 0
-        if (seconds > 0) {
-            remainingTime += seconds
-        }
-        
-        if (minute > 0) {
-            remainingTime += minute * 60
-        }
-        
-        if (hour > 0) {
-            remainingTime += hour * 60 * 60
-        }
-        NSUserDefaults.standardUserDefaults().setInteger(remainingTime, forKey: "remainingTime")
-    }
-    
     
     func updateTimer() {
         if let _ = timer {
