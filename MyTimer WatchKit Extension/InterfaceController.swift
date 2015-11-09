@@ -71,22 +71,25 @@ class InterfaceController: WKInterfaceController {
     override func willActivate() {
         // This method is called when watch view controller is about to be visible to user
         super.willActivate()
+        status = .Idle
+        resetTimer()
+        updateLabel()
         if (TimerManager.sharedInstance.currentTimer?.timeStarted != nil) {
-            if (status == .Idle) {
-                startStopAction()
+            status = .Started
+            if (TimerManager.sharedInstance.currentTimer?.timePause != nil) {
+                    status = .Pause
             }
+            updateTimer()
         } else {
-            pauseResumeButton.setTitle("Pause")
-            pauseResumeButton.setEnabled(false)
-            startStopButton.setTitle("Start")
-            startStopButton.setEnabled(true)
             secondsPicker.focus()
         }
+        updateButtonText()
     }
 
     override func didDeactivate() {
         // This method is called when watch view controller is no longer visible
         super.didDeactivate()
+        resetTimer()
     }
     
     @IBAction func hourChanged(value: Int) {
@@ -107,13 +110,12 @@ class InterfaceController: WKInterfaceController {
     @IBAction func pauseResumeAction() {
         if (status == .Started) {
             status = .Pause
-            pauseResumeButton.setTitle("Resume")
             TimerManager.sharedInstance.currentTimer?.pause()
         } else {
             status = .Started
-            pauseResumeButton.setTitle("Pause")
             TimerManager.sharedInstance.currentTimer?.resume()
         }
+        updateButtonText()
         updateLabel()
         updateTimer()
     }
@@ -122,16 +124,13 @@ class InterfaceController: WKInterfaceController {
         
         if (status != .Idle) {
             status = .Idle
-            startStopButton.setTitle("Start")
-            pauseResumeButton.setTitle("Pause")
             TimerManager.sharedInstance.currentTimer?.stop()
         } else {
             status = .Started
             TimerManager.sharedInstance.currentTimer?.start()
-            startStopButton.setTitle("Stop")
-            pauseResumeButton.setTitle("Pause")
         }
         
+        updateButtonText()
         updateLabel()
         updateTimer()
     }
@@ -139,7 +138,6 @@ class InterfaceController: WKInterfaceController {
     func updateLabel() {
         
         itemLabel.setText(TimerManager.sharedInstance.currentTimer?.remainingTimeString())
-        reloadComplications()
         if (status == .Started) {
             if (TimerManager.sharedInstance.currentTimer?.remainingTotalTime == 0) {
                 WKInterfaceDevice.currentDevice().playHaptic(.Stop)
@@ -148,24 +146,9 @@ class InterfaceController: WKInterfaceController {
         }
     }
     
-    func reloadComplications() {
-        if let complications: [CLKComplication] = CLKComplicationServer.sharedInstance().activeComplications {
-            if complications.count > 0 {
-                for complication in complications {
-                    CLKComplicationServer.sharedInstance().reloadTimelineForComplication(complication)
-                    NSLog("Reloading complication \(complication.description)...")
-                }
-                
-            }
-        }
-    }
     
     func updateTimer() {
-        if let _ = timer {
-            timer!.invalidate()
-            timer = nil
-        }
-        
+        resetTimer()
         if (status != .Idle) {
             hourPicker.setEnabled(false)
             hourPicker.resignFocus()
@@ -189,6 +172,32 @@ class InterfaceController: WKInterfaceController {
         }
         
         
+    }
+    
+    func resetTimer() {
+        if let _ = timer {
+            timer!.invalidate()
+            timer = nil
+        }
+    }
+    
+    func updateButtonText() {
+        if (status == .Idle) {
+            pauseResumeButton.setTitle("Pause")
+            pauseResumeButton.setEnabled(false)
+            startStopButton.setTitle("Start")
+            startStopButton.setEnabled(true)
+        } else if (status == .Pause) {
+            pauseResumeButton.setTitle("Resume")
+            pauseResumeButton.setEnabled(true)
+            startStopButton.setTitle("Stop")
+            startStopButton.setEnabled(true)
+        } else if (status == .Started) {
+            pauseResumeButton.setTitle("Pause")
+            pauseResumeButton.setEnabled(true)
+            startStopButton.setTitle("Stop")
+            startStopButton.setEnabled(true)
+        }
     }
 
 }

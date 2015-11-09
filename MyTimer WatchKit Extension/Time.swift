@@ -32,9 +32,9 @@ class Time: NSObject {
     var remainingTotalTime : Int = 0
     var timeStarted : NSDate?
     var timePause : NSDate?
-    var timeResume : NSDate?
     var name : String = ""
     var id : String?
+    var totalPauseTime : Int = 0
     
     override init() {
         id = NSUUID().UUIDString
@@ -46,10 +46,10 @@ class Time: NSObject {
         aCoder.encodeInteger(hour, forKey: "hour")
         aCoder.encodeInteger(minute, forKey: "minute")
         aCoder.encodeInteger(second, forKey: "second")
+        aCoder.encodeInteger(totalPauseTime, forKey: "totalPauseTime")
         aCoder.encodeObject(id, forKey: "id")
         aCoder.encodeObject(timeStarted, forKey: "timeStarted")
         aCoder.encodeObject(timePause, forKey: "timePause")
-        aCoder.encodeObject(timeResume, forKey: "timeResume")
     }
     
     init(coder aDecoder: NSCoder) {
@@ -58,9 +58,9 @@ class Time: NSObject {
         hour = aDecoder.decodeIntegerForKey("hour")
         minute = aDecoder.decodeIntegerForKey("minute")
         second = aDecoder.decodeIntegerForKey("second")
+        totalPauseTime = aDecoder.decodeIntegerForKey("totalPauseTime")
         timeStarted = aDecoder.decodeObjectForKey("timeStarted") as? NSDate
         timePause = aDecoder.decodeObjectForKey("timePause") as? NSDate
-        timeResume = aDecoder.decodeObjectForKey("timeResume") as? NSDate
     }
 
     func save() {
@@ -80,13 +80,15 @@ class Time: NSObject {
         }
         
         if let _ = timeStarted {
-            let timeLapse : Int = (Int)(NSDate().timeIntervalSinceDate(timeStarted!))
-            remainingTotalTime = timerValue - (timeLapse % (timerValue + 1))
+            let currentDate = NSDate()
+            var timeLapse : Int = (Int)(currentDate.timeIntervalSinceDate(timeStarted!))
+            
 
-            if (timeResume != nil && timePause != nil) {
-                let pauseTime = (Int)((timeResume?.timeIntervalSinceDate(timePause!))!)
-                remainingTotalTime += pauseTime
+            if (timePause != nil) {
+                timeLapse = (Int)((timePause!.timeIntervalSinceDate(timeStarted!)))
             }
+            
+            remainingTotalTime = timerValue - ((timeLapse - totalPauseTime) % (timerValue + 1))
             
             
         } else  {
@@ -99,32 +101,33 @@ class Time: NSObject {
         let uSec : Int = remainingTotalTime % 60
         
         let text = String(format: "%02d", uHour) + ":" + String(format: "%02d", uMin) + ":" + String(format: "%02d", uSec)
-        
+        print(text)
         return text
     }
     
     func start() {
         timeStarted = NSDate()
         timePause = nil
-        timeResume = nil
+        totalPauseTime = 0
         save()
     }
     
     func stop() {
         timeStarted = nil
         timePause = nil
-        timeResume = nil
+        totalPauseTime = 0
         save()
     }
     
     func pause() {
         timePause = NSDate()
-        timeResume = nil
         save()
     }
     
     func resume() {
-        timeResume = NSDate()
+        let pauseTime = (Int)(NSDate().timeIntervalSinceDate(timePause!))
+        totalPauseTime += pauseTime
+        timePause = nil
         save()
     }
     

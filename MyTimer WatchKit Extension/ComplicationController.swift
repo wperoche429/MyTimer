@@ -12,6 +12,22 @@ import ClockKit
 class ComplicationController: NSObject, CLKComplicationDataSource {
     
     // MARK: - Timeline Configuration
+    override init() {
+        super.init()
+        NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: Selector("reloadComplications"), userInfo: nil, repeats: true)
+    }
+    
+    func reloadComplications() {
+        if let complications: [CLKComplication] = CLKComplicationServer.sharedInstance().activeComplications {
+            if complications.count > 0 {
+                for complication in complications {
+                    CLKComplicationServer.sharedInstance().reloadTimelineForComplication(complication)
+                    NSLog("Reloading complication \(complication.description)...")
+                }
+                
+            }
+        }
+    }
     
     func getSupportedTimeTravelDirectionsForComplication(complication: CLKComplication, withHandler handler: (CLKComplicationTimeTravelDirections) -> Void) {
         handler([.Forward])
