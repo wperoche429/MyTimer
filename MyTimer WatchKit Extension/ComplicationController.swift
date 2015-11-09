@@ -14,15 +14,20 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
     // MARK: - Timeline Configuration
     
     func getSupportedTimeTravelDirectionsForComplication(complication: CLKComplication, withHandler handler: (CLKComplicationTimeTravelDirections) -> Void) {
-        handler([.Forward, .Backward])
+        handler([.Forward])
     }
     
     func getTimelineStartDateForComplication(complication: CLKComplication, withHandler handler: (NSDate?) -> Void) {
-        handler(nil)
+        let currentDate = NSDate()
+        handler(currentDate)
     }
     
     func getTimelineEndDateForComplication(complication: CLKComplication, withHandler handler: (NSDate?) -> Void) {
-        handler(nil)
+        let currentDate = NSDate()
+        let endDate =
+        currentDate.dateByAddingTimeInterval(NSTimeInterval(1))
+        
+        handler(endDate)
     }
     
     func getPrivacyBehaviorForComplication(complication: CLKComplication, withHandler handler: (CLKComplicationPrivacyBehavior) -> Void) {
@@ -33,7 +38,18 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
     
     func getCurrentTimelineEntryForComplication(complication: CLKComplication, withHandler handler: ((CLKComplicationTimelineEntry?) -> Void)) {
         // Call the handler with the current timeline entry
-        handler(nil)
+        if complication.family == .ModularLarge {
+            let template = CLKComplicationTemplateModularLargeStandardBody()
+            template.headerTextProvider = CLKSimpleTextProvider(text: "My Timer")
+            template.body1TextProvider = CLKSimpleTextProvider(text: TimeData.sharedInstance.timeRemainingText)
+            
+            let entry = CLKComplicationTimelineEntry(date: NSDate(),
+                complicationTemplate: template)
+            
+            handler(entry)
+        } else {
+            handler(nil)
+        }
     }
     
     func getTimelineEntriesForComplication(complication: CLKComplication, beforeDate date: NSDate, limit: Int, withHandler handler: (([CLKComplicationTimelineEntry]?) -> Void)) {
@@ -57,7 +73,13 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
     
     func getPlaceholderTemplateForComplication(complication: CLKComplication, withHandler handler: (CLKComplicationTemplate?) -> Void) {
         // This method will be called once per supported complication, and the results will be cached
-        handler(nil)
+        let template = CLKComplicationTemplateModularLargeStandardBody()
+        template.headerTextProvider =
+            CLKSimpleTextProvider(text: "My Timer")
+        template.body1TextProvider =
+            CLKSimpleTextProvider(text: "Remaining Time")
+        
+        handler(template)
     }
     
 }

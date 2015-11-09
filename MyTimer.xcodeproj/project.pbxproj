@@ -21,6 +21,7 @@
 		22CB97F11BF023D90000E483 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CB97F01BF023D90000E483 /* NotificationController.swift */; };
 		22CB97F31BF023D90000E483 /* ComplicationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CB97F21BF023D90000E483 /* ComplicationController.swift */; };
 		22CB97F51BF023D90000E483 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 22CB97F41BF023D90000E483 /* Assets.xcassets */; };
+		22CB98051BF0247F0000E483 /* TimeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22CB98041BF0247F0000E483 /* TimeData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +86,7 @@
 		22CB97F21BF023D90000E483 /* ComplicationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationController.swift; sourceTree = "<group>"; };
 		22CB97F41BF023D90000E483 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		22CB97F61BF023D90000E483 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		22CB98041BF0247F0000E483 /* TimeData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +153,7 @@
 		22CB97E91BF023D90000E483 /* MyTimer WatchKit Extension */ = {
 			isa = PBXGroup;
 			children = (
+				22CB98041BF0247F0000E483 /* TimeData.swift */,
 				22CB97EC1BF023D90000E483 /* InterfaceController.swift */,
 				22CB97EE1BF023D90000E483 /* ExtensionDelegate.swift */,
 				22CB97F01BF023D90000E483 /* NotificationController.swift */,
@@ -314,6 +317,7 @@
 				22CB97F11BF023D90000E483 /* NotificationController.swift in Sources */,
 				22CB97F31BF023D90000E483 /* ComplicationController.swift in Sources */,
 				22CB97EF1BF023D90000E483 /* ExtensionDelegate.swift in Sources */,
+				22CB98051BF0247F0000E483 /* TimeData.swift in Sources */,
 				22CB97ED1BF023D90000E483 /* InterfaceController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

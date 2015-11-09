@@ -1,39 +1,61 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="3.0" toolsVersion="6724" systemVersion="14A389" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="AgC-eL-Hgc">
+<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="3.0" toolsVersion="9059" systemVersion="15A284" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="AgC-eL-Hgc">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6711"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="3735"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9049"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="9019"/>
     </dependencies>
     <scenes>
         <!--Interface Controller-->
         <scene sceneID="aou-V4-d1y">
             <objects>
-                <controller id="AgC-eL-Hgc" customClass="InterfaceController" customModuleProvider="target"/>
-            </objects>
-            <point key="canvasLocation" x="220" y="345"/>
-        </scene>
-        <!--Static Notification Interface Controller-->
-        <scene sceneID="AEw-b0-oYE">
-            <objects>
-                <notificationController id="YCC-NB-fut">
+                <controller id="AgC-eL-Hgc" customClass="InterfaceController" customModule="MyTimer_WatchKit_App" customModuleProvider="target">
                     <items>
-                        <label alignment="left" text="Alert Label" id="IdU-wH-bcW"/>
+                        <group width="1" height="60" alignment="left" id="Gxq-jv-UBo">
+                            <items>
+                                <picker width="0.33000000000000002" height="100" alignment="left" focusStyle="sequence" id="hNq-n2-EnN">
+                                    <connections>
+                                        <action selector="hourChanged:" destination="AgC-eL-Hgc" id="W4e-QD-wU4"/>
+                                    </connections>
+                                </picker>
+                                <picker width="0.33000000000000002" height="100" alignment="left" focusStyle="sequence" id="tT2-8i-nhd">
+                                    <connections>
+                                        <action selector="minChanged:" destination="AgC-eL-Hgc" id="mTQ-wv-NKs"/>
+                                    </connections>
+                                </picker>
+                                <picker width="0.33000000000000002" height="100" alignment="left" focusStyle="sequence" id="OkJ-OD-uZO">
+                                    <connections>
+                                        <action selector="secChanged:" destination="AgC-eL-Hgc" id="kM5-J1-Ld8"/>
+                                    </connections>
+                                </picker>
+                            </items>
+                        </group>
+                        <label width="1" alignment="left" text="Label" textAlignment="center" id="xtV-kH-nfc"/>
+                        <group width="1" alignment="left" id="ies-gr-K2b">
+                            <items>
+                                <button width="0.5" alignment="left" title="Button" id="sBT-Ga-F6t">
+                                    <connections>
+                                        <action selector="pauseResumeAction" destination="AgC-eL-Hgc" id="dHg-DR-4xO"/>
+                                    </connections>
+                                </button>
+                                <button width="0.5" alignment="left" title="Button" id="Jfd-Q4-GcB">
+                                    <connections>
+                                        <action selector="startStopAction" destination="AgC-eL-Hgc" id="SZH-dP-Akt"/>
+                                    </connections>
+                                </button>
+                            </items>
+                        </group>
                     </items>
-                    <notificationCategory key="notificationCategory" identifier="myCategory" id="JfB-70-Muf"/>
                     <connections>
-                        <outlet property="notificationAlertLabel" destination="IdU-wH-bcW" id="JKC-fr-R95"/>
-                        <segue destination="4sK-HA-Art" kind="relationship" relationship="dynamicNotificationInterface" id="kXh-Jw-8B1"/>
+                        <outlet property="hourPicker" destination="hNq-n2-EnN" id="ur0-g7-pIb"/>
+                        <outlet property="itemLabel" destination="xtV-kH-nfc" id="Ijd-Qd-a8B"/>
+                        <outlet property="minPicker" destination="tT2-8i-nhd" id="ndw-RI-mQD"/>
+                        <outlet property="pauseResumeButton" destination="sBT-Ga-F6t" id="a0B-B4-wnB"/>
+                        <outlet property="secondsPicker" destination="OkJ-OD-uZO" id="H2i-P4-MvN"/>
+                        <outlet property="startStopButton" destination="Jfd-Q4-GcB" id="068-uA-4Aa"/>
                     </connections>
-                </notificationController>
+                </controller>
             </objects>
-            <point key="canvasLocation" x="220" y="643"/>
-        </scene>
-        <!--Notification Controller-->
-        <scene sceneID="ZPc-GJ-vnh">
-            <objects>
-                <controller id="4sK-HA-Art" customClass="NotificationController" customModuleProvider="target"/>
-            </objects>
-            <point key="canvasLocation" x="468" y="643"/>
+            <point key="canvasLocation" x="265" y="353"/>
         </scene>
     </scenes>
 </document>
