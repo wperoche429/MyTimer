@@ -193,6 +193,7 @@ class InterfaceController: WKInterfaceController {
         if (hour > 0) {
             remainingTime += hour * 60 * 60
         }
+        NSUserDefaults.standardUserDefaults().setInteger(remainingTime, forKey: "remainingTime")
     }
     
     
@@ -212,8 +213,7 @@ class InterfaceController: WKInterfaceController {
             pauseResumeButton.setEnabled(true)
             
             if (status == .Started) {
-                computeRemainingTime()
-                NSUserDefaults.standardUserDefaults().setInteger(remainingTime, forKey: "remainingTime")
+                
                 timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: Selector("updateLabel"), userInfo: nil, repeats: true)
             }
             
