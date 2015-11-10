@@ -8,33 +8,20 @@
 
 import UIKit
 import Foundation
+import WatchKit
 
 class Time: NSObject {
-
-    var hour : Int = 0 {
-        didSet {
-            save()
-        }
-    }
     
-    var minute : Int = 0 {
-        didSet {
-            save()
-        }
-    }
-    
-    var second : Int = 0 {
-        didSet {
-            save()
-        }
-    }
-    
+    var hour : Int = 0
+    var minute : Int = 0
+    var second : Int = 0
     var remainingTotalTime : Int = 0
     var timeStarted : NSDate?
     var timePause : NSDate?
     var name : String = ""
     var id : String?
     var totalPauseTime : Int = 0
+    var repeating = false
     
     override init() {
         id = NSUUID().UUIDString
@@ -50,6 +37,8 @@ class Time: NSObject {
         aCoder.encodeObject(id, forKey: "id")
         aCoder.encodeObject(timeStarted, forKey: "timeStarted")
         aCoder.encodeObject(timePause, forKey: "timePause")
+        aCoder.encodeBool(repeating, forKey: "repeating")
+
     }
     
     init(coder aDecoder: NSCoder) {
@@ -61,54 +50,59 @@ class Time: NSObject {
         totalPauseTime = aDecoder.decodeIntegerForKey("totalPauseTime")
         timeStarted = aDecoder.decodeObjectForKey("timeStarted") as? NSDate
         timePause = aDecoder.decodeObjectForKey("timePause") as? NSDate
-    }
+        repeating = aDecoder.decodeBoolForKey("repeating")
 
+    }
+    
     func save() {
-        let data = NSKeyedArchiver.archivedDataWithRootObject(self)
-        NSUserDefaults.standardUserDefaults().setObject(data, forKey: "saveTimer")
+        TimerManager.sharedInstance.addTimer(self)
     }
     
     func remainingTimeString() -> String {
-        var timerValue = 0
-        timerValue += second
-        timerValue += minute * 60
-        timerValue += hour * 60 * 60
         
-        remainingTotalTime = -1
+        let timerValue = getTimerValue()
+        
         if (timerValue == 0) {
-            return "00:00:00"
+            return timerInString(0)
         }
         
         if let _ = timeStarted {
             let currentDate = NSDate()
             var timeLapse : Int = (Int)(currentDate.timeIntervalSinceDate(timeStarted!))
             
-
+            
             if (timePause != nil) {
                 timeLapse = (Int)((timePause!.timeIntervalSinceDate(timeStarted!)))
             }
             
             remainingTotalTime = timerValue - ((timeLapse - totalPauseTime) % (timerValue + 1))
+            if !repeating {
+                if ((timeLapse - totalPauseTime) / (timerValue + 1) > 1) {
+                    remainingTotalTime = 0
+                }
+            }
             
             
         } else  {
             remainingTotalTime = timerValue
         }
         
-        let uHour : Int = remainingTotalTime / 3600
-        let minLeft : Int = remainingTotalTime / 60
-        let uMin : Int = minLeft % 60
-        let uSec : Int = remainingTotalTime % 60
+        if (remainingTotalTime == 0 && timeStarted != nil) {
+            if !repeating {
+                stop()
+            }
+            WKInterfaceDevice.currentDevice().playHaptic(.Notification)
+            
+        }
         
-        let text = String(format: "%02d", uHour) + ":" + String(format: "%02d", uMin) + ":" + String(format: "%02d", uSec)
-        print(text)
-        return text
+        return timerInString(remainingTotalTime)
     }
     
     func start() {
         timeStarted = NSDate()
         timePause = nil
         totalPauseTime = 0
+        remainingTotalTime = getTimerValue()
         save()
     }
     
@@ -131,5 +125,24 @@ class Time: NSObject {
         save()
     }
     
+    func getTimerValue() -> Int {
+        var timerValue = 0
+        timerValue += second
+        timerValue += minute * 60
+        timerValue += hour * 60 * 60
+        
+        return timerValue
+    }
+    
+    func timerInString(value : Int) -> String {
+        let uHour : Int = value / 3600
+        let minLeft : Int = value / 60
+        let uMin : Int = minLeft % 60
+        let uSec : Int = value % 60
+        
+        let text = String(format: "%02d", uHour) + ":" + String(format: "%02d", uMin) + ":" + String(format: "%02d", uSec)
+        
+        return text
+    }
     
 }

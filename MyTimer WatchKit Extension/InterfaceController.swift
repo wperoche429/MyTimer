@@ -21,21 +21,13 @@ class InterfaceController: WKInterfaceController {
     @IBOutlet var minPicker: WKInterfacePicker!
     @IBOutlet var secondsPicker: WKInterfacePicker!
     var timer : NSTimer?
+    var currentTimer : Time?
     
-    enum Status{
-        case Idle
-        case Started
-        case Pause
-        
-    }
-    
-    var status = Status.Idle
-
     override func awakeWithContext(context: AnyObject?) {
         super.awakeWithContext(context)
         
         // Configure interface objects here.
-        let currentTimer = TimerManager.sharedInstance.currentTimer
+        currentTimer = TimerManager.sharedInstance.currentTimer
         var hourItems: [WKPickerItem] = []
         for hr in 0...23 {
             let pickerItem = WKPickerItem()
@@ -71,85 +63,95 @@ class InterfaceController: WKInterfaceController {
     override func willActivate() {
         // This method is called when watch view controller is about to be visible to user
         super.willActivate()
-        status = .Idle
-        resetTimer()
-        updateLabel()
-        if (TimerManager.sharedInstance.currentTimer?.timeStarted != nil) {
-            status = .Started
-            if (TimerManager.sharedInstance.currentTimer?.timePause != nil) {
-                    status = .Pause
-            }
-            updateTimer()
-        } else {
-            secondsPicker.focus()
-        }
-        updateButtonText()
+        updateUI()
+        startTimer()
     }
 
     override func didDeactivate() {
         // This method is called when watch view controller is no longer visible
         super.didDeactivate()
-        resetTimer()
+        stopTimer()
     }
     
     @IBAction func hourChanged(value: Int) {
-        TimerManager.sharedInstance.currentTimer?.hour = value
+        currentTimer?.hour = value
         updateLabel()
     }
     
     @IBAction func minChanged(value: Int) {
-        TimerManager.sharedInstance.currentTimer?.minute = value
+        currentTimer?.minute = value
         updateLabel()
     }
     
     @IBAction func secChanged(value: Int) {
-        TimerManager.sharedInstance.currentTimer?.second = value
+        currentTimer?.second = value
         updateLabel()
     }
 
     @IBAction func pauseResumeAction() {
-        if (status == .Started) {
-            status = .Pause
-            TimerManager.sharedInstance.currentTimer?.pause()
+        if let _ = currentTimer?.timePause {
+            currentTimer?.resume()
         } else {
-            status = .Started
-            TimerManager.sharedInstance.currentTimer?.resume()
+            currentTimer?.pause()
         }
-        updateButtonText()
+        
         updateLabel()
-        updateTimer()
+        updateUI()
+        TimerManager.reloadComplications()
     }
     
     @IBAction func startStopAction() {
         
-        if (status != .Idle) {
-            status = .Idle
-            TimerManager.sharedInstance.currentTimer?.stop()
+        if let _ = currentTimer?.timeStarted {
+            currentTimer?.stop()
+            stopTimer()
         } else {
-            status = .Started
-            TimerManager.sharedInstance.currentTimer?.start()
+            currentTimer?.start()
+            startTimer()
         }
-        
-        updateButtonText()
         updateLabel()
-        updateTimer()
+        updateUI()
+        TimerManager.reloadComplications()
     }
     
     func updateLabel() {
         
-        itemLabel.setText(TimerManager.sharedInstance.currentTimer?.remainingTimeString())
-        if (status == .Started) {
-            if (TimerManager.sharedInstance.currentTimer?.remainingTotalTime == 0) {
-                WKInterfaceDevice.currentDevice().playHaptic(.Stop)
-                
-            }
+        itemLabel.setText(currentTimer?.remainingTimeString())
+
+    }
+
+    
+    func resetTimer() {
+        
+    }
+    
+    func startTimer() {
+        timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: Selector("updateLabel"), userInfo: nil, repeats: true)
+    }
+    
+    func stopTimer() {
+        if let _ = timer {
+            timer!.invalidate()
+            timer = nil
         }
     }
     
-    
-    func updateTimer() {
-        resetTimer()
-        if (status != .Idle) {
+    func updateUI() {
+        if let _ = currentTimer?.timeStarted {
+            if let _ = currentTimer?.timePause {
+                pauseResumeButton.setTitle("Resume")
+                pauseResumeButton.setEnabled(true)
+                startStopButton.setTitle("Stop")
+                startStopButton.setEnabled(true)
+                
+                
+            } else {
+                pauseResumeButton.setTitle("Pause")
+                pauseResumeButton.setEnabled(true)
+                startStopButton.setTitle("Stop")
+                startStopButton.setEnabled(true)
+            }
+            
             hourPicker.setEnabled(false)
             hourPicker.resignFocus()
             minPicker.setEnabled(false)
@@ -157,13 +159,12 @@ class InterfaceController: WKInterfaceController {
             secondsPicker.setEnabled(false)
             secondsPicker.resignFocus()
             pauseResumeButton.setEnabled(true)
+        } else  {
+            pauseResumeButton.setTitle("Pause")
+            pauseResumeButton.setEnabled(false)
+            startStopButton.setTitle("Start")
+            startStopButton.setEnabled(true)
             
-            if (status == .Started) {
-                
-                timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: Selector("updateLabel"), userInfo: nil, repeats: true)
-            }
-            
-        } else {
             hourPicker.setEnabled(true)
             minPicker.setEnabled(true)
             secondsPicker.setEnabled(true)
@@ -171,33 +172,6 @@ class InterfaceController: WKInterfaceController {
             pauseResumeButton.setEnabled(false)
         }
         
-        
-    }
-    
-    func resetTimer() {
-        if let _ = timer {
-            timer!.invalidate()
-            timer = nil
-        }
-    }
-    
-    func updateButtonText() {
-        if (status == .Idle) {
-            pauseResumeButton.setTitle("Pause")
-            pauseResumeButton.setEnabled(false)
-            startStopButton.setTitle("Start")
-            startStopButton.setEnabled(true)
-        } else if (status == .Pause) {
-            pauseResumeButton.setTitle("Resume")
-            pauseResumeButton.setEnabled(true)
-            startStopButton.setTitle("Stop")
-            startStopButton.setEnabled(true)
-        } else if (status == .Started) {
-            pauseResumeButton.setTitle("Pause")
-            pauseResumeButton.setEnabled(true)
-            startStopButton.setTitle("Stop")
-            startStopButton.setEnabled(true)
-        }
     }
 
 }
