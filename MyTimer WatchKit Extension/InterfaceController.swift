@@ -11,7 +11,7 @@ import Foundation
 import ClockKit
 
 
-class InterfaceController: WKInterfaceController {
+class InterfaceController: WKInterfaceController, TimeDelegate {
     
     
     @IBOutlet var itemLabel: WKInterfaceLabel!
@@ -20,14 +20,14 @@ class InterfaceController: WKInterfaceController {
     @IBOutlet var hourPicker: WKInterfacePicker!
     @IBOutlet var minPicker: WKInterfacePicker!
     @IBOutlet var secondsPicker: WKInterfacePicker!
-    var timer : NSTimer?
-    var currentTimer : Time?
+//    var timer : NSTimer?
+    var timer : Time?
     
     override func awakeWithContext(context: AnyObject?) {
         super.awakeWithContext(context)
         
         // Configure interface objects here.
-        currentTimer = TimerManager.sharedInstance.currentTimer
+        timer = TimerManager.sharedInstance.currentTimer
         var hourItems: [WKPickerItem] = []
         for hr in 0...23 {
             let pickerItem = WKPickerItem()
@@ -36,7 +36,7 @@ class InterfaceController: WKInterfaceController {
             hourItems.append(pickerItem)
         }
         hourPicker.setItems(hourItems)
-        hourPicker.setSelectedItemIndex((currentTimer?.hour)!)
+        hourPicker.setSelectedItemIndex((timer?.hour)!)
         
         var minItems: [WKPickerItem] = []
         for min in 0...59 {
@@ -46,7 +46,7 @@ class InterfaceController: WKInterfaceController {
             minItems.append(pickerItem)
         }
         minPicker.setItems(minItems)
-        minPicker.setSelectedItemIndex((currentTimer?.minute)!)
+        minPicker.setSelectedItemIndex((timer?.minute)!)
         
         var secItems: [WKPickerItem] = []
         for sec in 0...59 {
@@ -56,7 +56,7 @@ class InterfaceController: WKInterfaceController {
             secItems.append(pickerItem)
         }
         secondsPicker.setItems(secItems)
-        secondsPicker.setSelectedItemIndex((currentTimer?.second)!)
+        secondsPicker.setSelectedItemIndex((timer?.second)!)
         updateLabel()
     }
 
@@ -64,35 +64,35 @@ class InterfaceController: WKInterfaceController {
         // This method is called when watch view controller is about to be visible to user
         super.willActivate()
         updateUI()
-        startTimer()
+        timer?.subscribe(self)
     }
 
     override func didDeactivate() {
         // This method is called when watch view controller is no longer visible
         super.didDeactivate()
-        stopTimer()
+        timer?.unsubscribe(self)
     }
     
     @IBAction func hourChanged(value: Int) {
-        currentTimer?.hour = value
+        timer?.hour = value
         updateLabel()
     }
     
     @IBAction func minChanged(value: Int) {
-        currentTimer?.minute = value
+        timer?.minute = value
         updateLabel()
     }
     
     @IBAction func secChanged(value: Int) {
-        currentTimer?.second = value
+        timer?.second = value
         updateLabel()
     }
 
     @IBAction func pauseResumeAction() {
-        if let _ = currentTimer?.timePause {
-            currentTimer?.resume()
+        if let _ = timer?.timePause {
+            timer?.resume()
         } else {
-            currentTimer?.pause()
+            timer?.pause()
         }
         
         updateLabel()
@@ -102,12 +102,10 @@ class InterfaceController: WKInterfaceController {
     
     @IBAction func startStopAction() {
         
-        if let _ = currentTimer?.timeStarted {
-            currentTimer?.stop()
-            stopTimer()
+        if let _ = timer?.timeStarted {
+            timer?.stop()
         } else {
-            currentTimer?.start()
-            startTimer()
+            timer?.start()
         }
         updateLabel()
         updateUI()
@@ -116,29 +114,15 @@ class InterfaceController: WKInterfaceController {
     
     func updateLabel() {
         
-        itemLabel.setText(currentTimer?.remainingTimeString())
+        itemLabel.setText(timer?.timeInString)
 
     }
 
-    
-    func resetTimer() {
-        
-    }
-    
-    func startTimer() {
-        timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: Selector("updateLabel"), userInfo: nil, repeats: true)
-    }
-    
-    func stopTimer() {
-        if let _ = timer {
-            timer!.invalidate()
-            timer = nil
-        }
-    }
+
     
     func updateUI() {
-        if let _ = currentTimer?.timeStarted {
-            if let _ = currentTimer?.timePause {
+        if let _ = timer?.timeStarted {
+            if let _ = timer?.timePause {
                 pauseResumeButton.setTitle("Resume")
                 pauseResumeButton.setEnabled(true)
                 startStopButton.setTitle("Stop")
@@ -173,5 +157,11 @@ class InterfaceController: WKInterfaceController {
         }
         
     }
+    
+    func timeUpdate(timeInString: String) {
+        itemLabel.setText(timeInString)
+        updateUI()
+    }
+
 
 }

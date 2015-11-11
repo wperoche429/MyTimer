@@ -56,7 +56,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
             }
             
             template.headerTextProvider = CLKSimpleTextProvider(text: "My Timer")
-            template.body1TextProvider = CLKSimpleTextProvider(text: currentTimer.remainingTimeString())
+            template.body1TextProvider = CLKSimpleTextProvider(text: currentTimer.timeInString)
             
             let entry = CLKComplicationTimelineEntry(date: NSDate(),
                 complicationTemplate: template)
